@@ -2,7 +2,7 @@ import logging
 from datetime import timedelta, datetime, UTC
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, WebSocket, Depends, HTTPException
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from jose import jwt, JWTError
 from passlib.context import CryptContext
@@ -10,7 +10,7 @@ from pydantic import BaseModel
 from starlette import status
 
 from config import Session
-from models import User
+from models import User, Player
 
 router = APIRouter(
     prefix="/auth",
@@ -88,6 +88,14 @@ async def get_current_user(token: str = Depends(oauth2_scheme)):
         user_id: int = payload.get('id')
         if username is None or user_id is None:
             raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Incorrect username or password")
-        return {"username": username, "user_id": user_id}
+        return Player(username=username, user_id=user_id)
     except JWTError:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Incorrect username or password")
+
+
+async def get_websocket_user(websocket: WebSocket):
+    token = websocket.query_params.get('token')
+    if token is None:
+        await websocket.close(code=1008)
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Incorrect token")
+    return await get_current_user(token)
