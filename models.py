@@ -80,14 +80,14 @@ class GameLobby:
 
     def game_status_json(self):
         if self.game_state is None:
-            return {"status": "waiting for opponent", "board_id": self.room_id}
+            return {"status": "Waiting For Opponent", "board_id": self.room_id}
         else:
             if self.game_state.winner is None:
-                return {"status": "game_started",
+                return {"status": "Game Started",
                         "player_X": self.players[PlayerType.first].user_id,
                         "player_Y": self.players[PlayerType.second].user_id}
             else:
-                return {"status": "game_finished", "winner": self.game_state.winner}
+                return {"status": "Game Finished", "winner": self.game_state.winner}
 
     async def start_game(self):
         self.game_state = GameState(player_x=self.players[PlayerType.first],
