@@ -5,6 +5,18 @@ document.addEventListener("DOMContentLoaded", () => {
     const resetButton = document.querySelector("#reset");
     let websocket;
 
+    async function createNewGame() {
+        try {
+            const response = await fetch(`http://${window.location.host}/new_game`); // Send the request
+            if (!response.ok) {
+                throw new Error('Network response was not ok ' + response.statusText);
+            }
+            return await response.json();
+        } catch (error) {
+            console.error('There has been a problem with your fetch operation:', error);
+        }
+    }
+
     function connectWebSocket() {
         websocket = new WebSocket(`ws://${window.location.host}/ws`);
 

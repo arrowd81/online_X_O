@@ -27,6 +27,16 @@ body {
     cursor: pointer;
 }
 
+.cell.x::before {
+    content: 'X';
+    color: red;
+}
+
+.cell.o::before {
+    content: 'O';
+    color: blue;
+}
+
 #reset {
     margin-top: 20px;
 }
