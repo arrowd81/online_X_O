@@ -17,7 +17,8 @@ models.base.metadata.create_all(bind=engine)
 app = FastAPI()
 app.include_router(auth.router)
 
-app.mount("/static", StaticFiles(directory="static"), name="static")
+app.mount("/login", StaticFiles(directory="static/login", html=True), name="static")
+app.mount("/game", StaticFiles(directory="static/game", html=True), name="static")
 user_dependency = Annotated[models.Player, Depends(auth.get_current_user)]
 ws_user_dependency = Annotated[models.Player, Depends(auth.get_websocket_user)]
 
