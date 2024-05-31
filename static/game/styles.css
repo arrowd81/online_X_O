@@ -6,6 +6,15 @@ body {
     background-color: #f0f0f0;
 }
 
+#container {
+    margin: 50px auto;
+    padding: 20px;
+    width: 400px;
+    background-color: #fff;
+    border-radius: 10px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
 #game {
     text-align: center;
 }
@@ -15,6 +24,7 @@ body {
     grid-template-columns: repeat(3, 100px);
     grid-template-rows: repeat(3, 100px);
     gap: 5px;
+    justify-content: center;
 }
 
 .cell {
@@ -37,9 +47,21 @@ body {
     color: blue;
 }
 
-#reset {
+button {
     margin-top: 20px;
+    background-color: #4CAF50;
+    color: white;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s;
 }
+
+button:hover {
+    background-color: #45a049;
+}
+
 
 #status {
     margin-top: 10px;

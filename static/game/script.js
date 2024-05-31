@@ -5,28 +5,21 @@ document.addEventListener("DOMContentLoaded", () => {
     const resetButton = document.querySelector("#reset");
     let websocket;
 
-    async function createNewGame() {
-        try {
-            const response = await fetch(`http://${window.location.host}/new_game`); // Send the request
-            if (!response.ok) {
-                throw new Error('Network response was not ok ' + response.statusText);
-            }
-            let data = await response.json();
-            if (data["status"] === "Waiting For Opponent" || data["status"] === "Game Started") {
-                return data["board_id"]
-            }
-        } catch (error) {
-            console.error('There has been a problem with your fetch operation:', error);
-        }
-    }
 
     function connectWebSocket() {
-        websocket = new WebSocket(`ws://${window.location.host}/ws`);
+        token = localStorage.getItem('authkey')
+        if (token) {
+            url_parts = window.location.href.split('/')
+            roomId = url_parts[url_parts.length - 1]
+            websocket = new WebSocket(`ws://${window.location.host}/ws/${roomId}?token=${token}`);
 
-        websocket.onmessage = function (event) {
-            const gameState = JSON.parse(event.data);
-            updateBoard(gameState);
-        };
+            websocket.onmessage = function (event) {
+                const gameState = JSON.parse(event.data);
+                updateBoard(gameState);
+            };
+        } else {
+            alert('لطفا دوباره وارد شوید.')
+        }
     }
 
     function updateBoard(gameState) {

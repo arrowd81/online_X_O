@@ -37,7 +37,7 @@ document.getElementById('login-form').addEventListener('submit', function (event
         .then(data => {
             localStorage.setItem('authkey', data["access_token"])
             localStorage.setItem('username', formData.get('username'))
-            window.location.href = `http://${window.location.host}/game/index.html`
+            window.location.href = `http://${window.location.host}/lobby/`
         })
         .catch(error => {
             alert('خطایی رخ داده است: ' + error);

@@ -2,7 +2,7 @@ import logging
 from datetime import timedelta, datetime, UTC
 from typing import Annotated
 
-from fastapi import APIRouter, WebSocket, Depends, HTTPException
+from fastapi import APIRouter, WebSocket, Depends, HTTPException, WebSocketException
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from jose import jwt, JWTError
 from passlib.context import CryptContext
@@ -100,5 +100,9 @@ async def get_websocket_user(websocket: WebSocket):
     token = websocket.query_params.get('token')
     if token is None:
         await websocket.close(code=1008)
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Incorrect token")
-    return await get_current_user(token)
+        raise WebSocketException(code=status.HTTP_401_UNAUTHORIZED, reason="Incorrect token")
+    try:
+        player = await get_current_user(token)
+    except HTTPException as e:
+        raise WebSocketException(code=e.status_code, reason=e.detail)
+    return player

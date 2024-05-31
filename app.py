@@ -2,23 +2,23 @@ import random
 from typing import Annotated
 
 from fastapi import FastAPI, WebSocket, Depends, HTTPException
-from fastapi.responses import RedirectResponse
+from fastapi.responses import RedirectResponse, FileResponse
 from fastapi.staticfiles import StaticFiles
 from starlette.websockets import WebSocketDisconnect
 
 import auth
 import models
 from config import engine
-from utils import check_winner
 from exceptions import UserAlreadyExistsException
+from utils import check_winner
 
 models.base.metadata.create_all(bind=engine)
 
 app = FastAPI()
 app.include_router(auth.router)
-
 app.mount("/login", StaticFiles(directory="static/login", html=True), name="static")
-app.mount("/game", StaticFiles(directory="static/game", html=True), name="static")
+app.mount("/game_resources", StaticFiles(directory="static/game", html=True), name="static")
+app.mount("/lobby", StaticFiles(directory="static/lobby", html=True), name="static")
 user_dependency = Annotated[models.Player, Depends(auth.get_current_user)]
 ws_user_dependency = Annotated[models.Player, Depends(auth.get_websocket_user)]
 
@@ -28,7 +28,12 @@ running_games: list[models.GameLobby] = []
 
 @app.get("/")
 async def home():
-    return RedirectResponse("/static/index.html")
+    return RedirectResponse("/login")
+
+
+@app.get("/game/{game_id}")
+async def get_game(game_id: str):
+    return FileResponse("./static/game/index.html")
 
 
 @app.get("/new_game")
