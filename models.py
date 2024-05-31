@@ -85,7 +85,8 @@ class GameLobby:
             if self.game_state.winner is None:
                 return {"status": "Game Started",
                         "player_X": self.players[PlayerType.first].user_id,
-                        "player_Y": self.players[PlayerType.second].user_id}
+                        "player_Y": self.players[PlayerType.second].user_id,
+                        "board_id": self.room_id}
             else:
                 return {"status": "Game Finished", "winner": self.game_state.winner}
 

@@ -10,13 +10,14 @@ import auth
 import models
 from config import engine
 from utils import check_winner
+from exceptions import UserAlreadyExistsException
 
 models.base.metadata.create_all(bind=engine)
 
 app = FastAPI()
 app.include_router(auth.router)
 
-app.mount("/", StaticFiles(directory="static"), name="static")
+app.mount("/static", StaticFiles(directory="static"), name="static")
 user_dependency = Annotated[models.Player, Depends(auth.get_current_user)]
 ws_user_dependency = Annotated[models.Player, Depends(auth.get_websocket_user)]
 
@@ -26,7 +27,7 @@ running_games: list[models.GameLobby] = []
 
 @app.get("/")
 async def home():
-    return RedirectResponse("/index.html")
+    return RedirectResponse("/static/index.html")
 
 
 @app.get("/new_game")
@@ -40,7 +41,11 @@ async def new_game(player: user_dependency):
                                        position=random.choice((models.PlayerType.first, models.PlayerType.second)))
         return pending_lobby.game_status_json()
     else:
-        await pending_lobby.add_player(player)
+        try:
+            await pending_lobby.add_player(player)
+        except UserAlreadyExistsException:
+            status = pending_lobby.game_status_json()
+            return status
         status = pending_lobby.game_status_json()
         running_games.append(pending_lobby)
         pending_lobby = None

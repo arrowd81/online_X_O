@@ -8,7 +8,7 @@ class UserAlreadyExistsException(GameException):
         self.user = user
 
     def __str__(self):
-        return f'User "{self.user}" already exists'
+        return f'User {self.user} already exists'
 
 
 class LobbyIsFullException(GameException):
