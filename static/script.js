@@ -35,9 +35,9 @@ document.getElementById('login-form').addEventListener('submit', function (event
     })
         .then(response => response.json())
         .then(data => {
-            alert('ورود موفقیت‌آمیز بود: ');
             localStorage.setItem('authkey', data["access_token"])
-            window.location.href = `http://${window.location.host}/game/index.html`
+            localStorage.setItem('username', formData.get('username'))
+            window.location.href = `http://${window.location.host}/static/game/index.html`
         })
         .catch(error => {
             alert('خطایی رخ داده است: ' + error);
