@@ -47,6 +47,9 @@ db_dependency = Annotated[Session, Depends(get_db)]
 
 @router.post("/", status_code=status.HTTP_201_CREATED)
 async def create_user(db: db_dependency, request: CreateUserRequest):
+    user = db.query(User).filter(User.username == request.username).first()
+    if user:
+        raise HTTPException(status_code=409, detail="Username already exists")
     create_user_model = User(
         username=request.username,
         hashed_password=bcrypt_context.hash(request.password)
