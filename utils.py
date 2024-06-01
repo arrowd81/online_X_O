@@ -1,6 +1,9 @@
 import secrets
 import string
 
+from logging_config import logger
+from fastapi import WebSocket
+
 
 def generate_room_id(length=10):
     characters = string.ascii_letters + string.digits
@@ -20,3 +23,8 @@ def check_winner(board):
     if all(board):
         return "Draw"
     return None
+
+
+async def send_exception(websocket: WebSocket, reason):
+    logger.debug(f"Exception occurred: {reason}")
+    await websocket.send_json({'status': 'exception', 'reason': reason})
