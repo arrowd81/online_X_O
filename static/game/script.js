@@ -17,8 +17,14 @@ document.addEventListener("DOMContentLoaded", () => {
                 const gameState = JSON.parse(event.data);
                 updateBoard(gameState);
             };
+
+            websocket.onerror = function (event) {
+                console.error(event)
+                window.location.href = `http://${window.location.host}/lobby/`
+            }
         } else {
             alert('لطفا دوباره وارد شوید.')
+            window.location.href = `http://${window.location.host}/lobby/`
         }
     }
 
@@ -42,15 +48,15 @@ document.addEventListener("DOMContentLoaded", () => {
             const currentPlayer = status.textContent.includes("X") ? "X" : "O";
 
             if (!currentState[index]) {
-                websocket.send(JSON.stringify({index, player: currentPlayer}));
+                websocket.send(JSON.stringify({type: 'move', index, player: currentPlayer}));
             }
         });
     });
 
     resetButton.addEventListener("click", () => {
-        websocket.send(JSON.stringify({reset: true}));
         websocket.close();
         connectWebSocket();
+        websocket.send(JSON.stringify({type: "game_state"}));
     });
 
     connectWebSocket();

@@ -99,7 +99,10 @@ async def websocket_endpoint(websocket: WebSocket, room_id: str, player: ws_user
             if not request_type:
                 await send_exception(websocket, reason=f"type not found in data: {data}")
             elif request_type == 'move':
-                await move(data)
+                if game_lobby.game_state:
+                    await move(data)
+                else:
+                    await send_exception(websocket, reason="game has not started yet")
             elif request_type == 'game_state':
                 await game_lobby.send_game_state(websocket)
             else:

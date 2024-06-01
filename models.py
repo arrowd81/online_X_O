@@ -107,4 +107,7 @@ class GameLobby:
         await asyncio.gather(*[player.send_text(self.game_state.json()) for player in self.players_websocket])
 
     async def send_game_state(self, websocket: WebSocket):
-        await websocket.send_text(self.game_state.json())
+        if self.game_state:
+            await websocket.send_text(self.game_state.json())
+        else:
+            await websocket.send_json(self.game_status_json())
