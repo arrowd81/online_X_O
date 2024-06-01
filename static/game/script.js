@@ -1,9 +1,11 @@
 document.addEventListener("DOMContentLoaded", () => {
-    const board = document.querySelector("#board");
     const cells = document.querySelectorAll(".cell");
     const status = document.querySelector("#status");
+    const info = document.querySelector("#info");
     const resetButton = document.querySelector("#reset");
+    const waitingAnimation = document.getElementById('waiting')
     let websocket;
+    let player;
 
 
     function connectWebSocket() {
@@ -12,10 +14,29 @@ document.addEventListener("DOMContentLoaded", () => {
             url_parts = window.location.href.split('/')
             roomId = url_parts[url_parts.length - 1]
             websocket = new WebSocket(`ws://${window.location.host}/ws/${roomId}?token=${token}`);
+            websocket.onopen = function (event) {
+                websocket.send(JSON.stringify({type: "game_state"}));
+            }
 
             websocket.onmessage = function (event) {
-                const gameState = JSON.parse(event.data);
-                updateBoard(gameState);
+                const data = JSON.parse(event.data);
+                console.log(data)
+                switch (data.status) {
+                    case "game_state":
+                        waitingAnimation.style.display = 'none'
+                        updateBoard(data);
+                        break;
+                    case "Waiting For Opponent":
+                        info.textContent = "Waiting For Opponent"
+                        waitingAnimation.style.display = 'block';
+                        break;
+                    case "exception":
+                        status.textContent = data.reason
+                        setTimeout(() => {
+                            websocket.send(JSON.stringify({type: "game_state"}));
+                        }, 2000);
+                        break;
+                }
             };
 
             websocket.onerror = function (event) {
@@ -32,12 +53,24 @@ document.addEventListener("DOMContentLoaded", () => {
         cells.forEach((cell, index) => {
             cell.textContent = gameState.board[index] || "";
         });
+        switch (localStorage.getItem('username')) {
+            case gameState.player_x.username:
+                info.textContent = "you are player X"
+                player = "X"
+                break;
+            case gameState.player_y.username:
+                info.textContent = "you are player O"
+                player = "O"
+                break;
+        }
         if (gameState.winner) {
             status.textContent = `Winner: ${gameState.winner}`;
         } else if (gameState.draw) {
             status.textContent = "Draw!";
+        } else if (gameState.current_player === player) {
+            status.textContent = `your turn`;
         } else {
-            status.textContent = `Current Player: ${gameState.current_player}`;
+            status.textContent = `waiting for player: ${gameState.current_player}`;
         }
     }
 
@@ -45,10 +78,12 @@ document.addEventListener("DOMContentLoaded", () => {
         cell.addEventListener("click", () => {
             const index = cell.dataset.index;
             const currentState = Array.from(cells).map(cell => cell.textContent);
-            const currentPlayer = status.textContent.includes("X") ? "X" : "O";
 
             if (!currentState[index]) {
-                websocket.send(JSON.stringify({type: 'move', index, player: currentPlayer}));
+                if (websocket.readyState === WebSocket.CLOSED) {
+                    resetButton.click()
+                }
+                websocket.send(JSON.stringify({type: 'move', index}));
             }
         });
     });
@@ -56,7 +91,6 @@ document.addEventListener("DOMContentLoaded", () => {
     resetButton.addEventListener("click", () => {
         websocket.close();
         connectWebSocket();
-        websocket.send(JSON.stringify({type: "game_state"}));
     });
 
     connectWebSocket();

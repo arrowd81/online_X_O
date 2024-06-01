@@ -1,7 +1,6 @@
 import random
 from typing import Annotated
 
-from logging_config import logger
 from fastapi import FastAPI, WebSocket, Depends, HTTPException, WebSocketException
 from fastapi.responses import RedirectResponse, FileResponse
 from fastapi.staticfiles import StaticFiles
@@ -11,6 +10,7 @@ import auth
 import models
 from config import engine
 from exceptions import UserAlreadyExistsException
+from logging_config import logger
 from utils import check_winner, send_exception
 
 models.base.metadata.create_all(bind=engine)
@@ -41,31 +41,35 @@ async def get_game(game_id: str):
 async def new_game(player: user_dependency):
     if player is None:
         raise HTTPException(status_code=401, detail="Not authenticated")
-    global pending_lobby
-    if not pending_lobby:
-        pending_lobby = models.GameLobby()
-        await pending_lobby.add_player(player,
-                                       position=random.choice((models.PlayerType.first, models.PlayerType.second)))
-        logger.info(f"new lobby created: {pending_lobby.room_id}")
-        global running_games
-        running_games.append(pending_lobby)
-        return pending_lobby.game_status_json()
-    else:
-        try:
-            await pending_lobby.add_player(player)
-            logger.info(f"player {player.username} added to lobby {pending_lobby.room_id}")
-        except UserAlreadyExistsException:
-            status = pending_lobby.game_status_json()
+
+    global running_games
+    try:
+        lobby = next(lobby for lobby in running_games if player in lobby.players.values())
+        return lobby.room_id
+    except StopIteration:
+        global pending_lobby
+        if not pending_lobby:
+            pending_lobby = models.GameLobby()
+            await pending_lobby.add_player(player,
+                                           position=random.choice((models.PlayerType.first, models.PlayerType.second)))
+            logger.info(f"new lobby created: {pending_lobby.room_id}")
+            running_games.append(pending_lobby)
+            return pending_lobby.room_id
+        else:
+            try:
+                await pending_lobby.add_player(player)
+                logger.info(f"player {player.username} added to lobby {pending_lobby.room_id}")
+            except UserAlreadyExistsException:
+                return pending_lobby.room_id
+            status = pending_lobby.room_id
+            pending_lobby = None
             return status
-        status = pending_lobby.game_status_json()
-        pending_lobby = None
-        return status
 
 
 @app.websocket("/ws/{room_id}")
 async def websocket_endpoint(websocket: WebSocket, room_id: str, player: ws_user_dependency):
     async def move(move_data):
-        index = move_data["index"]
+        index = int(move_data["index"])
         if game_lobby.game_state.board[index] is None and game_lobby.game_state.winner is None:
             if game_lobby.game_state.validate_move(index, player):
                 game_lobby.game_state.board[index] = game_lobby.game_state.current_player
@@ -73,10 +77,12 @@ async def websocket_endpoint(websocket: WebSocket, room_id: str, player: ws_user
                 if winner:
                     game_lobby.game_state.winner = winner if winner != "Draw" else None
                     game_lobby.game_state.draw = winner == "Draw"
+                    await game_lobby.finish_game()
+                    return True
                 else:
                     game_lobby.game_state.current_player = "O" if game_lobby.game_state.current_player == "X" \
                         else "X"
-                await game_lobby.broadcast_game_state()
+                    await game_lobby.broadcast_game_state()
             else:
                 await send_exception(websocket, reason="Invalid move")
 
@@ -95,12 +101,17 @@ async def websocket_endpoint(websocket: WebSocket, room_id: str, player: ws_user
     try:
         while True:
             data = await websocket.receive_json()
+            logger.debug(f"{data}")
             request_type = data.get("type")
+            logger.debug(f"request type: {request_type}")
             if not request_type:
                 await send_exception(websocket, reason=f"type not found in data: {data}")
             elif request_type == 'move':
                 if game_lobby.game_state:
-                    await move(data)
+                    finished = await move(data)
+                    if finished:
+                        running_games.remove(game_lobby)
+                        break
                 else:
                     await send_exception(websocket, reason="game has not started yet")
             elif request_type == 'game_state':

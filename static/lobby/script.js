@@ -1,7 +1,5 @@
 function startGame() {
-    document.getElementById('waiting').style.display = 'block';
     token = localStorage.getItem('authkey')
-    console.log(token);
     if (token) {
         fetch(`http://${window.location.host}/new_game`, {
             method: 'GET',
@@ -9,11 +7,13 @@ function startGame() {
                 'Authorization': 'Bearer ' + token
             }
         }).then(response => {
+            if (response.status === 401) {
+                alert('لطفا دوباره وارد شوید.')
+                window.location.href = `http://${window.location.host}/login/`
+            }
             return response.json();
         }).then(data => {
-            if (data["status"] === "Waiting For Opponent" || data["status"] === "Game Started") {
-                window.location.href = `http://${window.location.host}/game/${data["board_id"]}`
-            }
+            window.location.href = `http://${window.location.host}/game/${data}`
         }).catch(error => {
             console.error('Error:', error)
         });
