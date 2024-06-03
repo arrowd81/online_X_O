@@ -33,19 +33,20 @@ document.getElementById('login-form').addEventListener('submit', function (event
         },
         body: new URLSearchParams(formData)
     })
-        .then(response => response.json())
-        .then(data => {
-            if (data.status === 200) {
-                localStorage.setItem('authkey', data["access_token"])
-                localStorage.setItem('username', formData.get('username'))
-                window.location.href = `http://${window.location.host}/lobby/`
-            } else if (data.status === 401) {
+        .then(response => {
+            if (response.status === 200) {
+                response.json().then(data => {
+                    localStorage.setItem('authkey', data["access_token"])
+                    localStorage.setItem('username', formData.get('username'))
+                    window.location.href = `http://${window.location.host}/lobby/`
+                })
+            } else if (response.status === 401) {
                 alert('نام کاربری یا رمز عبور اشتباه است!')
             } else {
-                alert('خطایی رخ داده است: ' + error);
+                alert('خطایی رخ داده است');
+                response.json().then(data => console.error(data))
             }
-        })
-        .catch(error => {
-            alert('خطایی رخ داده است: ' + error);
-        });
+        }).catch(error => {
+        alert('خطایی رخ داده است: ' + error);
+    });
 });
