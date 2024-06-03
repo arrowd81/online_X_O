@@ -25,10 +25,15 @@ class CustomFormatter(logging.Formatter):
         return super().format(record)
 
 
-# Example usage:
 logger = logging.getLogger()
-handler = logging.StreamHandler()
 formatter = CustomFormatter("%(log_color)s%(levelname)s%(reset)s: %(message_padding)s%(message)s")
-handler.setFormatter(formatter)
-logger.addHandler(handler)
-logger.setLevel(logging.DEBUG)
+# console output
+stream_handler = logging.StreamHandler()
+stream_handler.setFormatter(formatter)
+logger.addHandler(stream_handler)
+# file output
+file_handler = logging.FileHandler('online_X_O.log')
+file_handler.setFormatter(formatter)
+logger.addHandler(file_handler)
+# level
+logger.setLevel(logging.INFO)

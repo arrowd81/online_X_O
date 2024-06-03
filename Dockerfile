@@ -1,0 +1,20 @@
+FROM python:latest
+
+RUN mkdir /app
+WORKDIR /app
+
+# database config
+ARG DATABASE_LOCATION
+ARG DATABASE_USERNAME
+ARG DATABASE_PASSWORD
+ARG DATABASE_NAME
+ENV DATABASE_LOCATION=$DATABASE_LOCATION
+ENV DATABASE_USERNAME=$DATABASE_USERNAME
+ENV DATABASE_PASSWORD=$DATABASE_PASSWORD
+ENV DATABASE_NAME=$DATABASE_NAME
+
+COPY . .
+
+RUN pip --default-timeout=300 install --no-cache -r requirements.txt
+
+CMD ["uvicorn", "app:app", "--host", "0.0.0.0", "--port", "8000"]
