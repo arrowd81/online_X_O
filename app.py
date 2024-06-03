@@ -4,6 +4,8 @@ from typing import Annotated
 from fastapi import FastAPI, WebSocket, Depends, HTTPException, WebSocketException
 from fastapi.responses import RedirectResponse, FileResponse
 from fastapi.staticfiles import StaticFiles
+from sqlalchemy import or_
+from sqlalchemy.orm import aliased
 from starlette.websockets import WebSocketDisconnect
 
 import auth
@@ -30,6 +32,28 @@ running_games: list[models.GameLobby] = []
 @app.get("/")
 async def home():
     return RedirectResponse("/login")
+
+
+@app.get("/history")
+async def get_history(player: user_dependency, db: auth.db_dependency):
+    if player is None:
+        raise HTTPException(status_code=401, detail="Not authenticated")
+    PlayerX = aliased(models.User, name='player_x')
+    PlayerO = aliased(models.User, name='player_o')
+    games_query = db.query(models.Game.id.label("game_id"),
+                           PlayerX.username.label("player_x_username"),
+                           PlayerO.username.label("player_o_username"),
+                           models.Game.winner.label('winner')
+                           ).join(PlayerX, models.Game.player_x_id == PlayerX.id) \
+        .join(PlayerO, models.Game.player_o_id == PlayerO.id) \
+        .filter(or_(models.Game.player_x_id == player.user_id, models.Game.player_o_id == player.user_id))
+    games = games_query.all()
+    return [{
+        'game_id': game.game_id,
+        'player_x_username': game.player_x_username,
+        'player_o_username': game.player_o_username,
+        'winner': game.winner
+    } for game in games]
 
 
 @app.get("/game/{game_id}")

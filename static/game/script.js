@@ -1,4 +1,5 @@
 document.addEventListener("DOMContentLoaded", () => {
+    const board = document.querySelector("#board");
     const cells = document.querySelectorAll(".cell");
     const status = document.querySelector("#status");
     const info = document.querySelector("#info");
@@ -24,11 +25,12 @@ document.addEventListener("DOMContentLoaded", () => {
                 switch (data.status) {
                     case "game_state":
                         waitingAnimation.style.display = 'none'
+                        board.style.display = 'grid';
                         updateBoard(data);
                         break;
                     case "Waiting For Opponent":
-                        info.textContent = "Waiting For Opponent"
                         waitingAnimation.style.display = 'block';
+                        board.style.display = 'none'
                         break;
                     case "exception":
                         status.textContent = data.reason

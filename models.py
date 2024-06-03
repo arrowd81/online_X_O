@@ -4,7 +4,6 @@ from typing import List, Optional
 from fastapi import WebSocket
 from pydantic import BaseModel
 from sqlalchemy import Column, Integer, String, ForeignKey
-from sqlalchemy.orm import relationship
 
 from config import base, Session
 from exceptions import UserAlreadyExistsException, LobbyIsFullException, PositionIsFullException
@@ -19,9 +18,6 @@ class User(base):
     username = Column(String, unique=True)
     hashed_password = Column(String)
 
-    games_x = relationship("Game", foreign_keys='Game.player_x_id', back_populates="user_x")
-    games_o = relationship("Game", foreign_keys='Game.player_o_id', back_populates="user_o")
-
 
 class Game(base):
     __tablename__ = 'game'
@@ -29,9 +25,6 @@ class Game(base):
     player_x_id = Column(Integer, ForeignKey('user.id'))
     player_o_id = Column(Integer, ForeignKey('user.id'))
     winner = Column(String)
-
-    user_x = relationship("User", foreign_keys=[player_x_id], back_populates="games_x")
-    user_o = relationship("User", foreign_keys=[player_o_id], back_populates="games_o")
 
 
 class Player(BaseModel):

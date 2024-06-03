@@ -10,7 +10,7 @@
 <div id="container">
     <div id="game">
         <h1>Tic-Tac-Toe</h1>
-        <div id="board">
+        <div id="board" STYLE="DISPLAY: NONE;">
             <div class="cell" data-index="0"></div>
             <div class="cell" data-index="1"></div>
             <div class="cell" data-index="2"></div>
@@ -21,13 +21,13 @@
             <div class="cell" data-index="7"></div>
             <div class="cell" data-index="8"></div>
         </div>
-        <button id="reset">Reset</button>
-        <p id="info"></p>
-        <p id="status"></p>
-        <div id="waiting" style="display: none;">
+        <div id="waiting">
             <p>Waiting for opponent...</p>
             <img src="https://media.giphy.com/media/3oEjI6SIIHBdRxXI40/giphy.gif" alt="loading">
         </div>
+        <button id="reset">Reset</button>
+        <p id="info"></p>
+        <p id="status"></p>
     </div>
 </div>
 <script src="/game_resources/script.js"></script>
