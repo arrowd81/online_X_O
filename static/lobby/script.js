@@ -1,3 +1,5 @@
+const username = localStorage.getItem('username')
+
 function startGame() {
     let token = localStorage.getItem('authkey')
     if (token) {
@@ -23,6 +25,7 @@ function startGame() {
 }
 
 document.addEventListener("DOMContentLoaded", () => {
+    document.getElementById("playerName").innerText = username
     let token = localStorage.getItem('authkey')
     if (token) {
         fetch(`http://${window.location.host}/history`, {
@@ -48,7 +51,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
 function updateGameHistory(gameData) {
     const tableBody = document.querySelector('#gameTable tbody');
-    const username = localStorage.getItem('username')
 
     gameData.forEach(game => {
         const row = document.createElement('tr');
