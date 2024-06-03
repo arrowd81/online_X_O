@@ -37,7 +37,6 @@ document.addEventListener("DOMContentLoaded", () => {
             }
             return response.json();
         }).then(data => {
-            console.log(data)
             updateGameHistory(data)
         }).catch(error => {
             console.error('Error:', error)

@@ -35,9 +35,15 @@ document.getElementById('login-form').addEventListener('submit', function (event
     })
         .then(response => response.json())
         .then(data => {
-            localStorage.setItem('authkey', data["access_token"])
-            localStorage.setItem('username', formData.get('username'))
-            window.location.href = `http://${window.location.host}/lobby/`
+            if (data.status === 200) {
+                localStorage.setItem('authkey', data["access_token"])
+                localStorage.setItem('username', formData.get('username'))
+                window.location.href = `http://${window.location.host}/lobby/`
+            } else if (data.status === 401) {
+                alert('نام کاربری یا رمز عبور اشتباه است!')
+            } else {
+                alert('خطایی رخ داده است: ' + error);
+            }
         })
         .catch(error => {
             alert('خطایی رخ داده است: ' + error);

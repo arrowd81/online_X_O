@@ -21,7 +21,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
             websocket.onmessage = function (event) {
                 const data = JSON.parse(event.data);
-                console.log(data)
                 switch (data.status) {
                     case "game_state":
                         waitingAnimation.style.display = 'none'
